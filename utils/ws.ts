@@ -72,7 +72,7 @@ let instance: WebSocketConnector | null = null;
 export function useWebSocket(): WebSocketConnector {
     const { user } = useAuth();
     if (!instance) {
-        instance = new WebSocketConnector(`ws://localhost:8000/ws/?token=${user.value?.token}`);
+        instance = new WebSocketConnector(`wss://api.algoland.uz/ws/?token=${user.value?.token}`);
     }
     return instance;
 }
