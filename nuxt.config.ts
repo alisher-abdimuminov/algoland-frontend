@@ -37,8 +37,8 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            api: "",
-            base: "",
+            api: "https://api.algoland.uz/api/v1",
+            base: "https://api.algoland.uz",
             storage: "",
         }
     },
