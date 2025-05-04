@@ -1,20 +1,26 @@
 <script setup lang="ts">
+// imports
 import { LucideChevronLeft, LucideClock, LucideCpu } from 'lucide-vue-next';
-import type { IPage, IResponse } from '~/types';
-import type { IAttempt } from '~/types/problem';
-import format from '~/utils/datetime';
+import type { Pagination, Response } from '~/types';
+import type { Attempt } from '~/types/problem';
 
 
+// composables
 const route = useRoute();
 const router = useRouter();
 
+// local composables
 const { user } = useAuth();
 
+
+// stores
 const problemStore = useProblemStore();
 
 const { problem } = storeToRefs(problemStore);
 
-const pagination = ref<IPage>({
+
+// variables
+const pagination = ref<Pagination>({
     next: 0,
     number: 1,
     pages: 0,
@@ -23,15 +29,15 @@ const pagination = ref<IPage>({
 });
 const isWating = ref(false);
 const isLoading = ref(true);
-const openedAttempt = ref<IAttempt | null>(null);
-const attempts = ref<IAttempt[]>([]);
+const openedAttempt = ref<Attempt | null>(null);
+const attempts = ref<Attempt[]>([]);
 
 
 const getAttempts = async (pageNumber: number = 1) => {
     if (user.value && problem.value) {
 
         isWating.value = true;
-        let response = await $fetch<IResponse>(api(`problems/${problem.value?.uuid}/attempts`) + `?page=${pageNumber}`, {
+        let response = await $fetch<Response>(api(`problems/problem/${problem.value?.uuid}/attempts`) + `?page=${pageNumber}`, {
             method: "GET",
             headers: {
                 Authorization: `Token ${user.value.token}`
@@ -41,7 +47,7 @@ const getAttempts = async (pageNumber: number = 1) => {
         if (response.status === "error") {
 
         } else {
-            let decoded = jsonify<{ page: IPage, attempts: IAttempt[] }>(decode(response.data));
+            let decoded = jsonify<{ page: Pagination, attempts: Attempt[] }>(decode(response.data));
             console.log(decoded);
             if (decoded) {
                 pagination.value = decoded.page;
@@ -136,9 +142,8 @@ onMounted(() => {
                             <TableRow class="hover:bg-transparent">
                                 <TableCell>Til</TableCell>
                                 <TableCell>
-                                    <div class="flex items-center gap-1 border rounded-md bg-accent/30 p-1 w-fit">
-                                        <Icon :name="openedAttempt.language.icon" class="w-2 h-2"
-                                            v-tippy="`${openedAttempt.language.name}`" />
+                                    <div class="flex items-center gap-1 border rounded-md bg-accent/30 p-1 w-fit h-fit">
+                                        <Icon :name="openedAttempt.language.icon" class="w-6 h-6" v-tippy="`${openedAttempt.language.name}`" />
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -165,7 +170,7 @@ onMounted(() => {
                             <TableRow class="hover:bg-transparent">
                                 <TableCell>Sana</TableCell>
                                 <TableCell>
-                                    <span>{{ format(openedAttempt.created, true) }}</span>
+                                    <span>{{ formatDateTime(openedAttempt.created, true) }}</span>
                                 </TableCell>
                             </TableRow>
                         </TableBody>
@@ -178,6 +183,12 @@ onMounted(() => {
                 <div v-if="openedAttempt.error" class="flex flex-col gap-1">
                     <p>Xatolik</p>
                     <Code :code="openedAttempt.error" :lang="openedAttempt.language.short" />
+                </div>
+                <div v-if="openedAttempt.status === 'wa'" class="flex flex-col gap-1">
+                    <p>Diff</p>
+                    <div class="flex flex-col gap-0 border rounded-md p-0">
+                        <span v-for="line in openedAttempt.cases[openedAttempt.cases.length - 1].diff.split('\n')" class="p-1" :class="{ 'bg-red-500/10 text-red-500': line.charAt(0) === '-', 'bg-green-500/10 text-green-500': line.charAt(0) === '+' }">{{ line }}</span>
+                    </div>
                 </div>
             </div>
             <div v-else class="flex flex-col gap-3">
@@ -236,8 +247,7 @@ onMounted(() => {
                                 </TableCell>
                                 <TableCell>
                                     <div class="flex items-center gap-1 border rounded-md bg-accent/30 p-1 w-fit">
-                                        <Icon :name="attempt.language.icon" class="w-2 h-2"
-                                            v-tippy="`${attempt.language.name}`" />
+                                        <Icon :name="attempt.language.icon" class="w-6 h-6" v-tippy="`${attempt.language.name}`" />
                                     </div>
                                 </TableCell>
                                 <TableCell>
@@ -253,7 +263,7 @@ onMounted(() => {
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <span>{{ format(attempt.created, true) }}</span>
+                                    <span>{{ formatDateTime(attempt.created, true) }}</span>
                                 </TableCell>
                             </TableRow>
                             <TableRow v-if="isWating || isLoading" v-for="_ in 10" >
@@ -266,11 +276,7 @@ onMounted(() => {
                             </TableRow>
                         </TableBody>
                     </Table>
-                    <Empty v-if="attempts.length === 0 && !isLoading && !isWating">
-                        <template #title>
-                            <span>Masalaga urinishlar topilmadi</span>
-                        </template>
-                    </Empty>
+                    <Empty v-if="attempts.length === 0 && !isLoading && !isWating" />
                 </div>
                 <div class="w-full flex items-center justify-center overflow-auto">
                     <Pagination v-slot="{ page }" :items-per-page="10" :total="pagination.pages * 10" :sibling-count="1" show-edges :default-page="pagination.number">

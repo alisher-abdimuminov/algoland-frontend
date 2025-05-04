@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { LucideArrowRight, LucideBadgeCheck, LucideBadgeInfo, LucideBell, LucideBellDot, LucideCheck, LucideCheckCheck, LucideChevronRight, LucideCommand, LucideHome, LucideInfo, LucideLayers, LucideLayers2, LucideListRestart, LucideLogIn, LucideLogOut, LucideMoon, LucidePalette, LucideSearch, LucideSettings, LucideStickyNote, LucideSun, LucideUser, LucideUserPen, LucideUserPlus, LucideUsers } from 'lucide-vue-next';
+import { LucideBadgeCheck, LucideBell, LucideBellDot, LucideCheck, LucideCheckCheck, LucideChevronRight, LucideCommand, LucideHome, LucideLayers, LucideLayers2, LucideListRestart, LucideLogIn, LucideLogOut, LucideMoon, LucideStickyNote, LucideSun, LucideUser, LucideUserPen, LucideUserPlus, LucideUsers } from 'lucide-vue-next';
 import type { WSNotification } from '~/types/codes';
-import format from '~/utils/datetime';
 
 
 const ws = useWs();
 const { theme } = useTheme();
 const { user, logout } = useAuth();
-const { lang, langInfo } = useLang();
+const { lang, t, langInfo } = useLang();
 
 const notificationsStore = useNotificationsStore();
 
@@ -19,11 +18,13 @@ const logOutDialogIsOpen = ref(false);
 
 
 const readNotifications = (notifications: WSNotification[]) => {
-    ws.sendMessage({
-        type: "read_notifications",
-        data: null
-    });
-    notificationsStore.read();
+    if (ws) {
+        ws.sendMessage({
+            type: "read_notifications",
+            data: null
+        });
+        notificationsStore.read();
+    }
 }
 
 
@@ -76,7 +77,7 @@ onMounted(() => {
                                             <LucideBellDot :size="15" v-else />
                                             <span>{{ notification.title }}</span>
                                         </div>
-                                        <span class="text-xs text-muted-foreground">{{ format(notification.created,
+                                        <span class="text-xs text-muted-foreground">{{ formatDateTime(notification.created,
                                             true) }}</span>
                                     </div>
                                     <div class="text-sm">
@@ -103,7 +104,7 @@ onMounted(() => {
                             <DropdownMenuItem v-if="user">
                                 <img :src="`/api/v1/avatar/${user.username}`" class="w-4 h-4 rounded-full"
                                     alt="alisher" />
-                                <span class="truncate">{{ user.full_name }}</span>
+                                <span class="truncate">{{ user.first_name }} {{ user.last_name }}</span>
                                 <DropdownMenuShortcut v-if="user.is_premium">
                                     <LucideBadgeCheck :size="15" />
                                 </DropdownMenuShortcut>
@@ -128,7 +129,7 @@ onMounted(() => {
                             <DropdownMenuItem v-if="!user"
                                 @click="$router.push({ name: 'auth-login', query: { next: $route.path } })">
                                 <LucideLogIn :size="15" />
-                                <span>Kirish</span>
+                                <span>{{ t("login") }}</span>
                                 <DropdownMenuShortcut>
                                     <LucideChevronRight :size="15" />
                                 </DropdownMenuShortcut>
@@ -136,7 +137,7 @@ onMounted(() => {
                             <DropdownMenuItem v-if="!user"
                                 @click="$router.push({ name: 'auth-signup', query: { next: $route.path } })">
                                 <LucideUserPlus :size="15" />
-                                <span>Ro'yxatdan o'tish</span>
+                                <span>{{ t("signup") }}</span>
                                 <DropdownMenuShortcut>
                                     <LucideChevronRight :size="15" />
                                 </DropdownMenuShortcut>
@@ -154,13 +155,13 @@ onMounted(() => {
                             <DropdownMenuLabel>Mavzu</DropdownMenuLabel>
                             <DropdownMenuRadioGroup v-model:model-value="theme">
                                 <DropdownMenuRadioItem value="dark">
-                                    Qorong'u
+                                    {{ t("dark") }}
                                     <DropdownMenuShortcut>
                                         <LucideMoon :size="15" />
                                     </DropdownMenuShortcut>
                                 </DropdownMenuRadioItem>
                                 <DropdownMenuRadioItem value="light">
-                                    Yorug'
+                                    {{ t("light") }}
                                     <DropdownMenuShortcut>
                                         <LucideSun :size="15" />
                                     </DropdownMenuShortcut>
@@ -204,7 +205,7 @@ onMounted(() => {
                 <Dialog v-model:open="logOutDialogIsOpen">
                     <DialogContent class="w-[calc(100%-1rem)] md:w-full rounded-md">
                         <DialogHeader>
-                            <DialogTitle>Tizimdan chiqish</DialogTitle>
+                            <DialogTitle>{{ t("logout") }}</DialogTitle>
                             <DialogDescription>Tizimdan chiqishdan oldin barcha ma'lumotlaringizni saqlab qo'yinh.
                             </DialogDescription>
                         </DialogHeader>
@@ -213,7 +214,7 @@ onMounted(() => {
                                 <Button>Bekor qilish</Button>
                             </DialogClose>
                             <DialogClose>
-                                <Button @click="logout" variant="destructive">Chiqish</Button>
+                                <Button @click="logout" variant="destructive">{{ t("logout") }}</Button>
                             </DialogClose>
                         </DialogFooter>
                     </DialogContent>

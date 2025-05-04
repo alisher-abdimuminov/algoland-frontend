@@ -1,32 +1,17 @@
-import type { IProfile } from "."
+import { type Profile } from "~/types/auth"
 
-
-export interface IPostTag {
+export interface Tag {
     id: string
     uuid: string
     name: string
 }
 
-export interface IPosts {
+export interface Post {
     id: number
     uuid: string
-    author: IProfile
+    author: Profile
     title: string
-    tags: IPostTag[]
-    description: string
-    created: string
-    likes: number
-    viewers: number
-    comments: number
-    is_liked: boolean
-}
-
-export interface IPost {
-    id: number
-    uuid: string
-    author: IProfile
-    title: string
-    tags: IPostTag[]
+    tags: Tag[]
     image: string
     description: string
     content: string

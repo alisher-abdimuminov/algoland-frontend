@@ -1,37 +1,22 @@
-import type { IProfile } from "."
+import type { User } from "~/types/auth"
 
-export interface ITranslatedContent {
+export interface TranslatedContent {
     [key: string]: string
 }
 
-export interface IProblemTag {
+export interface Tag {
     id: string
     uuid: string
     name: string
 }
 
-export interface ISample {
+export interface Sample {
     id: string
     input: string
     output: string
 }
 
-export interface IProblems {
-    order: number
-    uuid: string
-    title: string
-    author: IProfile
-    status: "attempted" | "not_attempted" | "solved"
-    acceptance: number
-    tags: IProblemTag[]
-    rank: number
-    difficulty: "easy" | "medium" | "hard"
-    time_limit: number
-    memory_limit: number
-    is_public: boolean
-}
-
-export interface ILanguage {
+export interface ProgrammingLanguage {
     id: string
     uuid: string
     name: string
@@ -39,19 +24,19 @@ export interface ILanguage {
     icon: string
 }
 
-export interface IProblem {
+export interface Problem {
     order: number
     uuid: string
     title: string
-    author: IProfile
+    author: User
     status: "attempted" | "not_attempted" | "solved"
     acceptance: number
-    tags: IProblemTag[]
-    description: ITranslatedContent
-    hint: ITranslatedContent
-    input: ITranslatedContent
-    output: ITranslatedContent
-    samples: ISample[]
+    tags: Tag[]
+    description: TranslatedContent
+    hint: TranslatedContent
+    input: TranslatedContent
+    output: TranslatedContent
+    samples: Sample[]
     rank: number
     difficulty: "easy" | "medium" | "hard"
     time_limit: number
@@ -59,10 +44,10 @@ export interface IProblem {
     with_link: boolean
     is_public: boolean
     language: string
-    languages: ILanguage[]
+    languages: ProgrammingLanguage[]
 }
 
-export type TJudeStatus =
+export type JudgeStatusType =
     | "ce" // Compilation Error
     | "cle" // Compilation Limit Exceeded
     | "re" // Runtime Error
@@ -75,16 +60,30 @@ export type TJudeStatus =
     | "je" // "Judge Error",
     | "dce" // Dangerous Code Error
 
-export interface IAttempt {
+export interface Case {
+    diff: string
+    test: number
+    time: number
+    memory: number
+    status: JudgeStatusType
+    stdin: string
+    stdout: string
+    stderr: string
+    expected: string
+}
+
+export interface Attempt {
     id: string
     uuid: string
-    language: ILanguage
-    status: TJudeStatus
+    author: User
+    language: ProgrammingLanguage
+    status: JudgeStatusType
     code: string
     time: number
     memory: number
     length: number
     error: string | null
     test: number
+    cases: Case[]
     created: string
 }

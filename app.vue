@@ -5,18 +5,21 @@ import Sonner from './components/ui/sonner/Sonner.vue';
 
 
 const ws = useWs();
+const { user } = useAuth();
 const { getShortcut } = useShortcuts();
 
 const notificationsStore = useNotificationsStore();
 
 
 onMounted(() => {
-    ws.onMessage<WSNotification>((message) => {
-        console.log("New message to app.vue", message);
-        if (message.type === "notification") {
-            notificationsStore.unshift(message.data);
-        }
-    })
+    if (user.value) {
+        ws.connect(user.value.token);
+        ws.onMessage<WSNotification>((message) => {
+            if (message.type === "notification") {
+                notificationsStore.unshift(message.data);
+            }
+        })
+    }
 });
 </script>
 

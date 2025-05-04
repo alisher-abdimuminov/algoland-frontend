@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
     compatibilityDate: '2024-11-01',
     devtools: { enabled: false },
-    modules: ['@nuxtjs/tailwindcss', 'shadcn-nuxt', "nuxt-monaco-editor", "@pinia/nuxt", "nuxt-tour", "@nuxt/fonts",],
+    modules: ['@nuxtjs/tailwindcss', 'shadcn-nuxt', "nuxt-monaco-editor", "@pinia/nuxt", "nuxt-tour", "@nuxt/fonts", "@nuxt/image", "nuxt-booster", "@nuxt/icon"],
     css: ['~/assets/css/fullcalendar.css',],
     components: [
         { path: "~/icons", global: true },
@@ -22,6 +22,13 @@ export default defineNuxtConfig({
         },
     },
 
+    booster: {
+        detection: {
+            performance: true,
+            browserSupport: true,
+        }
+    },
+
     app: {
         head: {
             link: [
@@ -37,9 +44,23 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            api: "https://api.algoland.uz/api/v1",
-            base: "https://api.algoland.uz",
-            storage: "",
+            // Production
+            production: {
+                api: "https://api.algoland.uz/api/v1",
+                base: "https://api.algoland.uz",
+                storage: "",
+                wss: "wss://api.algoland.uz/ws",
+            },
+
+            // Deployment
+            deployment: {
+                api: "http://localhost:8000/api/v1",
+                base: "http://localhost:8000",
+                storage: "",
+                ws: "ws://localhost:8000/ws",
+            },
+
+            isProduction: true,
         }
     },
 });

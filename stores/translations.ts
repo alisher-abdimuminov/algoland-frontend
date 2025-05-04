@@ -1,8 +1,8 @@
-import type { ILang } from "~/types";
+import type { Language } from "~/types";
 
 
 export const useTranslationsStore = defineStore("translations", {
-    state: (): { [lang: string]: ILang } => ({}),
+    state: (): { [lang: string]: Language } => ({}),
 
     getters: {
         langNames(): string[] {
@@ -14,7 +14,7 @@ export const useTranslationsStore = defineStore("translations", {
     },
 
     actions: {
-        set(translations: { [lang: string]: ILang }) {
+        set(translations: { [lang: string]: Language }) {
             this.$state = translations;
         },
         t(key: string) {

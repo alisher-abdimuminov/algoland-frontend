@@ -1,21 +1,29 @@
 <script setup lang="ts">
-import { LucideBadgeCheck, LucideCake } from 'lucide-vue-next';
-import type { IActivity, IResponse } from '~/types';
+// imports
+import type { Response } from '~/types';
+import type { Activity } from '~/types/auth';
 import { toast } from '~/components/ui/toast';
-import { type EChartsOption } from "echarts";
+import { LucideBadgeCheck, LucideCake } from 'lucide-vue-next';
 
 
 
+// composables
 const route = useRoute();
 
+// local composables
 const { user } = useAuth();
 const { theme } = useTheme();
 
+
+// stores
 const userStore = useUserStore();
 
 const { profile } = storeToRefs(userStore);
 
-const activities = ref<IActivity[]>([]);
+
+// variables
+const now = new Date();
+const activities = ref<Activity[]>([]);
 const waitingForActivities = ref(true);
 
 
@@ -39,9 +47,10 @@ const ranks = [
 ];
 
 
+// functions
 const getActivities = async () => {
     waitingForActivities.value = true;
-    let response = await $fetch<IResponse>(api(`users/${route.params.username}/activities`));
+    let response = await $fetch<Response>(api(`users/${route.params.username}/activities`));
 
     if (response.status === "error") {
         toast({
@@ -49,7 +58,7 @@ const getActivities = async () => {
             description: "Foydalanuvchi faolligi ma'lumotlarini olishda xatolik yuz berdi",
         });
     } else {
-        let decoded = jsonify<IActivity[]>(decode(response.data));
+        let decoded = jsonify<Activity[]>(decode(response.data));
 
         if (decoded) {
             activities.value = decoded;
@@ -58,38 +67,13 @@ const getActivities = async () => {
     waitingForActivities.value = false;
 }
 
-const option = ref<EChartsOption>({
-    tooltip: {
-        trigger: 'item'
-    },
-    legend: {
-        top: '5%',
-        left: 'center'
-    },
-    series: [
-        {
-            name: 'Access From',
-            type: 'pie',
-            radius: ['40%', '70%'],
-            center: ['50%', '70%'],
-            // adjust the start and end angle
-            startAngle: 180,
-            endAngle: 360,
-            data: [
-                { value: 1048, name: 'Oson' },
-                { value: 735, name: 'Ortacha' },
-                { value: 580, name: 'Qiyin' },
-            ]
-        }
-    ]
-});
-
 
 definePageMeta({
     middleware: ["user-is-exists"],
 })
 
 
+// hooks
 onMounted(() => {
     getActivities();
 });
@@ -122,19 +106,23 @@ onMounted(() => {
             <div class="w-full md:w-64">
                 <div class="sticky top-5 flex flex-col gap-3">
                     <div class="relative w-full h-64 flex items-center justify-center">
-                        <img class="w-64 h-64 rounded-md object-cover" :src="`/api/v1/avatar/${profile.username}`" alt="Generated avatar" />
+                        <img class="w-64 h-64 rounded-md object-cover" :src="`/api/v1/avatar/${profile.username}`"
+                            alt="Generated avatar" />
                         <div class="absolute bottom-3 right-6 md:right-3">
                             <span>{{ getCountryByCode(profile.country)?.flag }}</span>
                         </div>
                     </div>
                     <div class="text-xl flex items-center gap-2">
-                        <p v-tippy="{ content: `${profile.full_name}`, placement: 'top' }" class="w-full truncate">{{
-                            profile.full_name }}</p>
+                        <p v-tippy="{ content: `${profile.first_name} ${profile.last_name}`, placement: 'top' }"
+                            class="w-full truncate">
+                            {{ profile.first_name }} {{ profile.last_name }}
+                        </p>
                         <LucideBadgeCheck v-if="profile.is_premium" :size="20" class="text-blue-500" />
                         <LucideCake v-if="profile.is_birth_date" :size="20" class="text-green-500" />
                     </div>
 
-                    <span v-if="profile.last_seen === 'online'" class="text-green-500 text-xs">{{ lastSeen(profile.last_seen) }}</span>
+                    <span v-if="profile.last_seen === 'online'" class="text-green-500 text-xs">{{
+                        lastSeen(profile.last_seen) }}</span>
                     <span v-else class="text-blue-500 text-xs">Oxirigi marta {{ lastSeen(profile.last_seen) }}</span>
 
                     <div class="flex flex-col gap-1">
@@ -179,7 +167,10 @@ onMounted(() => {
                 </div>
 
                 <div class="grid">
-                    <HeatMap class="w-full" :data="activities" start="2024-09-15" end="2025-04-15" v-bind:is-loading="waitingForActivities" />
+                    <HeatMap class="w-full" :data="activities"
+                        :start="`${now.getFullYear() - 1}-${now.getMonth() + 1}-01`"
+                        :end="`${now.getFullYear()}-${now.getMonth() + 1}-01`"
+                        v-bind:is-loading="waitingForActivities" />
                 </div>
             </div>
         </div>

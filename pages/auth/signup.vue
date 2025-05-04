@@ -3,11 +3,11 @@
 import * as z from "zod";
 import { Icon } from "@iconify/vue";
 import { useForm } from "vee-validate";
+import type { Response } from "~/types";
+import { toast } from "~/components/ui/toast";
+import type { SignUpCode } from "~/types/codes";
 import { toTypedSchema } from '@vee-validate/zod';
 import { LucideEye, LucideEyeOff } from 'lucide-vue-next';
-import type { IResponse } from "~/types";
-import type { SignUpCode } from "~/types/codes";
-import { toast } from "~/components/ui/toast";
 
 
 // composables
@@ -26,9 +26,9 @@ const isToggled = ref(false);
 
 const signUpFormSchema = computed(() => toTypedSchema(z.object({
     username: z.string({ required_error: t("signup_001") }),
-    email: z.string({ required_error: t("signup_003") }).email({ message: t("signup_012") }),
-    first_name: z.string({ required_error: t("signup_004") }),
-    last_name: z.string({ required_error: t("signup_005") }),
+    email: z.string({ required_error: t("signup_005") }).email({ message: t("signup_012") }),
+    first_name: z.string({ required_error: t("signup_003") }),
+    last_name: z.string({ required_error: t("signup_004") }),
     gender: z.enum(["male", "female"], { required_error: t("signup_006"), invalid_type_error: t("signup_008") }),
     country: z.string({ required_error: t("signup_007") }),
     password: z.string({ required_error: t("signup_002") }),
@@ -42,7 +42,7 @@ const { handleSubmit, setFieldError } = useForm({
 
 const signup = handleSubmit(async(values) => {
     isWaiting.value = true;
-    let response = await $fetch<IResponse<SignUpCode>>(api("auth/signup"), {
+    let response = await $fetch<Response<SignUpCode>>(api("auth/signup"), {
         method: "POST",
         body: JSON.stringify({
             "data": encode(JSON.stringify(values))
@@ -54,11 +54,11 @@ const signup = handleSubmit(async(values) => {
     } else if (response.code === "signup_002") {
         setFieldError("password", t("signup_002"));
     } else if (response.code === "signup_003") {
-        setFieldError("email", t("signup_003"));
+        setFieldError("first_name", t("signup_003"));
     } else if (response.code === "signup_004") {
-        setFieldError("first_name", t("signup_004"));
+        setFieldError("last_name", t("signup_004"));
     } else if (response.code === "signup_005") {
-        setFieldError("last_name", t("signup_005"));
+        setFieldError("email", t("signup_005"));
     } else if (response.code === "signup_006") {
         setFieldError("gender", t("signup_006"));
     } else if (response.code === "signup_007") {
@@ -66,15 +66,19 @@ const signup = handleSubmit(async(values) => {
     } else if (response.code === "signup_008") {
         setFieldError("gender", t("signup_008"));
     } else if (response.code === "signup_009") {
-        setFieldError("username", t("signup_009"));
+        setFieldError("email", t("signup_009"));
     } else if (response.code === "signup_010") {
-        setFieldError("email", t("signup_010"));
+        setFieldError("username", t("signup_010"));
     } else if (response.code === "signup_011") {
+        setFieldError("username", t("signup_011"));
+    } else if (response.code === "signup_012") {
+        setFieldError("username", t("signup_012"));
+    } else if (response.code === "signup_013") {
         toast({
             title: "Ajoyib",
-            description: t("signup_011"),
+            description: t("signup_013"),
         });
-        router.push({ name: "auth-token", params: { token: encode(JSON.stringify({ username: values.username, expires: new Date(new Date().getTime() + 5 * 60 * 1000).getTime() })) }, query: route.query });
+        router.push({ name: "auth-login" });
     }
     isWaiting.value = false;
 });
@@ -102,7 +106,7 @@ onMounted(() => {
     <Auth :is-auth="false" class="sm:mx-auto sm:w-full sm:max-w-sm">
         <div class="sm:mx-auto sm:w-full sm:max-w-sm">
             <Logo class="mx-auto w-8 h-8" />
-            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight">Create account</h2>
+            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight">{{ t("join_us") }}</h2>
         </div>
 
         <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm md:max-w-xl">
@@ -137,7 +141,9 @@ onMounted(() => {
                             <FormMessage />
                         </FormItem>
                     </FormField>
+                </div>
 
+                <div class="flex flex-col md:flex-row gap-3">
                     <FormField v-slot="{ componentField }" name="last_name">
                         <FormItem class="w-full">
                             <FormLabel for="last_name">{{ t("last_name") }}</FormLabel>
@@ -156,7 +162,7 @@ onMounted(() => {
                             <FormControl>
                                 <Select :disabled="isWaiting" v-bind="componentField">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select gender" />
+                                        <SelectValue :placeholder="t('select_gender')" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="male">{{ t("male") }}</SelectItem>
@@ -196,7 +202,7 @@ onMounted(() => {
                 </FormField>
 
                 <div>
-                    <Button :disabled="isWaiting" class="w-full"><Icon v-if="isWaiting" icon="svg-spinners:bars-rotate-fade" /> {{ t("signup") }}</Button>
+                    <Button :disabled="isWaiting" class="w-full"><Loader v-if="isWaiting" /> {{ t("signup") }}</Button>
                 </div>
             </form>
 

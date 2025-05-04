@@ -3,7 +3,7 @@ export default function useLang() {
     
     const langCookie = useCookie<string>("lang", {
         sameSite: "lax",
-        default: () => "uz"
+        default: () => "uz",
     });
 
     const lang = computed({

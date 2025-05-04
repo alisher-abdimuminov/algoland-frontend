@@ -88,7 +88,7 @@ const editProblem = async () => {
         "languages": selectedLanguages.value,
         "tags": selectedTags.value,
     }
-    let response = await $fetch(api(`problems/${problem.value?.uuid}/edit`), {
+    let response = await $fetch(api(`problems/problem/${problem.value?.uuid}/edit`), {
         method: "POST",
         body: JSON.stringify({
             "data": encode(JSON.stringify(data))

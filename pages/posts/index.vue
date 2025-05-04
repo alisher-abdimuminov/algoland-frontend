@@ -1,29 +1,26 @@
 <script setup lang="ts">
 import NumberFlow from "@number-flow/vue";
 import { LucideClock, LucideDot, LucideEye, LucideHeart, LucideMinus, LucidePenSquare, LucidePlus, LucideSearch } from 'lucide-vue-next';
-import type { IPage, IResponse } from '~/types';
-import type { IPosts } from '~/types/post';
-import format from '~/utils/datetime';
+import type { Pagination, Response } from '~/types';
+import type { Post } from '~/types/post';
 
 
 const route = useRoute();
 const router = useRouter();
 
+const ws = useWs();
 const { user } = useAuth();
 
 const isLoading = ref(true);
 const isWaiting = ref(false);
-const posts = ref<IPosts[]>([]);
+const posts = ref<Post[]>([]);
 let typingTimer: NodeJS.Timeout | null = null;
-const pagination = ref<IPage>({
+const pagination = ref<Pagination>({
     next: 0,
     number: 1,
     pages: 0,
     previous: 0,
-    search: " ",
-    params: {
-        tag: ""
-    }
+    search: " "
 });
 
 
@@ -40,31 +37,31 @@ const onInput = (): void => {
 
 const getPosts = async (pageNumber: number = 1) => {
     isWaiting.value = true;
-    let response = await $fetch<IResponse>(api("posts") + `?page=${pageNumber}&search=${pagination.value.search}&tag=${pagination.value.params?.tag}`, {
+    let response = await $fetch<Response>(api("posts") + `?page=${pageNumber}&search=${pagination.value.search}`, {
         method: "GET",
         headers: {
-            ...(user ? {"Authorization": `Token ${user.value?.token}`} : {})
+            ...(user ? { "Authorization": `Token ${user.value?.token}` } : {})
         }
     });
 
     if (response.status === "error") {
 
     } else {
-        let decoded = jsonify<{ page: IPage, posts: IPosts[] }>(decode(response.data));
+        let decoded = jsonify<{ page: Pagination, posts: Post[] }>(decode(response.data));
         console.log(decoded);
         if (decoded) {
             pagination.value = decoded.page;
             posts.value = decoded.posts;
         }
     }
-    router.push({ name: "posts", query: { page: pagination.value.number, search: pagination.value.search, tag: pagination.value.params?.tag } });
+    router.push({ name: "posts", query: { page: pagination.value.number, search: pagination.value.search } });
     isWaiting.value = false;
 }
 
 const addPost = async () => {
     isWaiting.value = true;
     if (user.value) {
-        let response = await $fetch<IResponse>(api("posts/add"), {
+        let response = await $fetch<Response>(api("posts/add"), {
             method: "POST",
             headers: {
                 Authorization: `Token ${user.value.token}`
@@ -132,7 +129,7 @@ onMounted(() => {
                 <Button :disabled="isWaiting || isLoading" @click="addPost" size="sm">
                     <Loader v-if="isWaiting || isLoading" class="w-4 h-4" />
                     <LucidePenSquare v-else :size="15" />
-                    <span>Yozish</span>    
+                    <span>Yozish</span>
                 </Button>
             </div>
         </div>
@@ -145,7 +142,7 @@ onMounted(() => {
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-1 text-xs text-muted-foreground">
                             <LucideClock :size="15" />
-                            <span class="">{{ format(post.created) }}</span>
+                            <span class="">{{ formatDateTime(post.created) }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <div class="flex items-center gap-1">
@@ -158,17 +155,16 @@ onMounted(() => {
                             </div>
                         </div>
                     </div>
-                    <NuxtLink :to="{ name: 'posts-uuid', params: { uuid: post.uuid } }" class="text-2xl hover:underline underline-offset-4">{{ post.title }}</NuxtLink>
+                    <NuxtLink :to="{ name: 'posts-uuid', params: { uuid: post.uuid } }"
+                        class="text-2xl hover:underline underline-offset-4">{{ post.title }}</NuxtLink>
                     <p class="text-muted-foreground">{{ post.description }}</p>
-                    <div class="flex gap-1">
-                        <span v-for="tag in post.tags" :key="tag.id" @click="() => { pagination.params ? pagination.params.tag = '' : null; getPosts(pagination.number)}" class="text-xs">#{{ tag.name }}</span>
-                    </div>
                 </div>
                 <Skeleton v-if="isWaiting || isLoading" v-for="_ in 5" class="w-full h-56" />
             </div>
             <div class="w-full md:w-1/3">
                 <div class="sticky top-5">
-                    <div class="flex flex-col items-center justify-center gap-3 border w-full h-64 bg-accent/30 rounded-md">
+                    <div
+                        class="flex flex-col items-center justify-center gap-3 border w-full h-64 bg-accent/30 rounded-md">
                         <LucidePenSquare class="text-green-500" :size="30" />
                         <p>Write your first post</p>
                         <p>Bilimlaringizni barcha bilan ulashing.</p>

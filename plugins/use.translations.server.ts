@@ -1,6 +1,6 @@
 import { defineNuxtPlugin } from "#app";
 import { useTranslationsStore } from "~/stores/translations";
-import type { ILang } from "~/types";
+import type { Language } from "~/types";
 
 export default defineNuxtPlugin((nuxtApp) => {
     const translationsStore = useTranslationsStore();
@@ -12,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         )
         if (status.value == "success") {
             if (data.value) {
-                let decoded = jsonify<{ [lang: string]: ILang }>(decode(data.value.data));
+                let decoded = jsonify<{ [lang: string]: Language }>(decode(data.value.data));
                 if (decoded) {
                     translationsStore.set(decoded);
                 }

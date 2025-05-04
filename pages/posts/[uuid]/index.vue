@@ -4,8 +4,7 @@ import { cva } from "class-variance-authority";
 import { LucideChevronLeft, LucideDot, LucideEye, LucideHeart, LucideMessageCircle, LucideMinus, LucidePenSquare, LucidePlus } from 'lucide-vue-next';
 import { buttonVariants } from "~/components/ui/button";
 import mark from '~/composables/useMark';
-import type { IPost } from '~/types/post';
-import format from '~/utils/datetime';
+import type { Post } from '~/types/post';
 
 
 
@@ -41,14 +40,14 @@ useSeoMeta({
     description: post.value?.description,
     author: `${post.value?.author.first_name} ${post.value?.author.last_name}`,
     articleAuthor: [`${post.value?.author.first_name} ${post.value?.author.last_name}`],
-    articlePublishedTime: format(post.value ? post.value.created : ''),
+    articlePublishedTime: formatDateTime(post.value ? post.value.created : ''),
 });
 
 
 onMounted(() => {
     isLoading.value = false;
 
-    ws.onMessage<{ post: IPost }>((message) => {
+    ws.onMessage<{ post: Post }>((message) => {
         if (message.type === "update_post") {
             post.value = message.data.post
         }
@@ -69,7 +68,7 @@ onMounted(() => {
                             <LucidePenSquare :size="20" />
                         </NuxtLink>
                     </div>
-                    <span class="text-xs text-muted-foreground">{{ format(post.created) }}</span>
+                    <span class="text-xs text-muted-foreground">{{ formatDateTime(post.created) }}</span>
                     <p class="text-2xl md:text-4xl font-bold">{{ post.title }}</p>
 
                     <AspectRatio :ratio="16 / 9">

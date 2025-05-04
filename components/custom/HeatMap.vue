@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { IActivity } from '~/types';
+import type { Activity } from '~/types/auth';
 
 
 interface Props {
-    data: IActivity[]
+    data: Activity[]
     start: string
     end: string
     isLoading: boolean

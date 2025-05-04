@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LucideBadgeCheck, LucideCheck, LucideChevronLeft, LucideChevronRight, LucideClock, LucideCode, LucideCommand, LucideCpu, LucideFileText, LucideFlaskConical, LucideHome, LucideLayers, LucideLayers2, LucideListRestart, LucideLogIn, LucideLogOut, LucideLogs, LucideMessageCircle, LucideMoon, LucidePalette, LucidePlay, LucideScrollText, LucideSearch, LucideStretchHorizontal, LucideStretchVertical, LucideSun, LucideTimer, LucideUser, LucideUserPen, LucideUserPlus, LucideUsers, LucideX } from 'lucide-vue-next';
+import { LucideBadgeCheck, LucideCheck, LucideChevronRight, LucideCode, LucideCommand, LucideFileText, LucideHome, LucideLayers, LucideLayers2, LucideListRestart, LucideLogIn, LucideLogOut, LucideMoon, LucidePlay, LucideStretchHorizontal, LucideStretchVertical, LucideSun, LucideUser, LucideUserPen, LucideUserPlus, LucideUsers } from 'lucide-vue-next';
 
 
 const { theme } = useTheme();

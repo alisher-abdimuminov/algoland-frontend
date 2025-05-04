@@ -5,12 +5,8 @@
             <slot name="icon">
                 <LucideSearch />
                 </slot>
-            <slot name="title">
-                <p class="mb-2 mt-6 text-balance text-xl font-bold tracking-tight" v-html="props.title" />
-            </slot>
-            <slot name="description">
-                <p class="text-muted-foreground" v-html="props.description" />
-            </slot>
+            <p class="mb-2 mt-6 text-balance text-xl font-bold tracking-tight">{{ t("no_results_found") }}</p>
+            <p class="text-muted-foreground">{{ t("change_search_query") }}</p>
             <slot>
                 <p>:(</p>
             </slot>
@@ -19,18 +15,10 @@
 </template>
 
 <script lang="ts" setup>
+// imports
 import { LucideSearch } from 'lucide-vue-next';
 
-const props = withDefaults(
-    defineProps<{
-        title?: string;
-        description?: string;
-        icon?: string;
-    }>(),
-    {
-        icon: "lucide:search",
-        title: "Hech qanday natija topilmadi",
-        description: "Try changing your search query or adding a new record.",
-    }
-);
+
+// composables
+const { t } = useLang();
 </script>

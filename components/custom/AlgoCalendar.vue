@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { LucideCalendar, LucideCalendarCheck, LucideCheckCircle, LucideChevronLeft, LucideChevronRight, LucideFlame, LucideLayers3, LucideTimer } from 'lucide-vue-next';
-import Fire from '~/icons/fire.vue';
-import type { AlgoCalendarData } from '~/types';
+// imports
+import { LucideCalendar, LucideCalendarCheck, LucideCheckCircle, LucideFlame, LucideLayers3 } from 'lucide-vue-next';
 
 
-const { langInfo } = useLang();
+// interfaces and types
+export interface AlgoCalendarData {
+    uuid: string
+    date: string
+    isSolved: boolean
+    isFirstSolver: boolean
+    title: string
+    time: string
+}
 
 interface Props {
     year: number
@@ -12,9 +19,15 @@ interface Props {
     data: AlgoCalendarData[]
 }
 
+// props, models, ...
 const props = defineProps<Props>();
 
 
+// composables
+const { langInfo, t } = useLang();
+
+
+// functions
 const tooltip = computed(() => (year: number, month: number, day: number) => {
     return h("div", {
         class: "flex flex-col gap-2"
@@ -26,7 +39,7 @@ const tooltip = computed(() => (year: number, month: number, day: number) => {
                 class: "text-green-500",
                 size: 15,
             }),
-            h("p", "Birinchi yechim"),
+            h("p", t("first_solution")),
         ]) : null,
         h("div", {
             class: "flex items-center gap-1"
@@ -51,8 +64,7 @@ const tooltip = computed(() => (year: number, month: number, day: number) => {
             h("p", {}, algoData.value(year, month, day)?.title)
         ]),
     ])
-})
-
+});
 
 function monthMatrix(year: number, month: number): (number | null)[][] {
     const firstDay = new Date(year, month - 1, 1);
@@ -61,11 +73,8 @@ function monthMatrix(year: number, month: number): (number | null)[][] {
     const matrix: (number | null)[][] = [];
     let week: (number | null)[] = [];
 
-    // JavaScriptda haftaning birinchi kuni yakshanba (0), ammo siz Du(0) Se(1)...Sh(5), Ya(6) kabi tartib istayapsiz.
-    // Shunday qilib, biz dushanbani haftaning boshlanishi deb olamiz: ya'ni, `getDay()` ni o‘zgartiramiz:
     const getDayIndex = (date: Date) => (date.getDay() + 6) % 7;
 
-    // Birinchi haftadagi bo‘sh joylarni null bilan to‘ldirish
     for (let i = 0; i < getDayIndex(firstDay); i++) {
         week.push(null);
     }
@@ -106,33 +115,30 @@ function isLeftConnected(year: number, month: number, day: number): boolean {
 function isRightConnected(year: number, month: number, day: number): boolean {
     return !!algoData.value(year, month, day) && !!algoData.value(year, month, day - 1)?.isSolved;
 }
-
 </script>
 
 <template>
     <div class="border rounded-md p-1 md:p-3 grid items-center justify-center gap-2 text-sm md:text-base">
-        <div class="flex items-center justify-between">
+        <!-- In next release -->
+        <!-- <div class="flex items-center justify-between">
             <div class="hover:bg-accent/50 p-2 rounded-md cursor-pointer">
                 <LucideChevronLeft :size="15" />
             </div>
-            <p>Aprel - 2025</p>
+            <p>{{ new Date(`${year}-${month}-1`).toLocaleDateString(langInfo.code, { month: "long", year: "numeric" }) }}</p>
             <div class="hover:bg-accent/50 p-2 rounded-md cursor-pointer">
                 <LucideChevronRight :size="15" />
             </div>
-        </div>
+        </div> -->
         <div class="flex">
-            <div class="flex items-center justify-center w-8 h-8 m-1" v-for="weekName in getLocalizedWeekdays('narrow')">{{ weekName }}</div>
+            <div class="flex items-center justify-center w-8 h-8 m-1"
+                v-for="weekName in getLocalizedWeekdays('narrow')">{{ weekName }}</div>
         </div>
         <div v-for="week in monthMatrix(year, month)" class="flex">
             <div v-for="(day, index) in week"
                 class="relative w-8 h-8 rounded-md flex items-center justify-center m-1 z-100 cursor-pointer"
-                @click="console.log(day)"
-                v-tippy="day ? { content: tooltip(year, month, day) } : {}"
+                @click="console.log(day)" v-tippy="day ? { content: tooltip(year, month, day) } : {}"
                 :class="{ 'bg-accent border-none': day && isLeftConnected(year, month, day), 'bg-accent': day && isRightConnected(year, month, day), 'hover:bg-accent/30': day && !algoData(year, month, day) }">
                 <template v-if="day && algoData(year, month, day)?.isSolved">
-                    <!-- <Fire class="text-green-500" v-if="algoData(year, month, day)?.isFirstSolver" :size="20" />
-                    <CalendarCheck class="text-green-500" v-else-if="algoData(year, month, day)?.isSolved"
-                        :size="20" /> -->
                     <LucideFlame class="text-green-500" v-if="algoData(year, month, day)?.isFirstSolver" :size="20" />
                     <LucideCalendarCheck class="text-green-500" v-else-if="algoData(year, month, day)?.isSolved"
                         :size="20" />

@@ -21,13 +21,11 @@ export type LoginCode =
     | "login_007";
 
 
-export type VerifyCode =
-    | "verify_code_001"
-    | "verify_code_002"
-    | "verify_code_003"
-    | "verify_code_004"
-    | "verify_code_005"
-    | "verify_code_006";
+export type VerifyEmail =
+    | "verify_email_001"
+    | "verify_email_002"
+    | "verify_email_003"
+    | "verify_email_004";
 
 export type AddProblem = 
     | "add_problem_001"

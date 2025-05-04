@@ -1,11 +1,14 @@
 <script setup lang="ts">
+// imports
 import { LucideArrowUpRight, LucideGlobe } from 'lucide-vue-next';
 
- 
+
+// interface and props
 interface Props {
     to: string
 }
 
+// props, models, ...
 const props = defineProps<Props>();
 </script>
 

@@ -1,17 +1,25 @@
 <script setup lang="ts">
+// imports
 import { toast } from 'vue-sonner';
 import NumberFlow from "@number-flow/vue";
-import { type ILanguage } from "~/types/problem";
+import { type ProgrammingLanguage } from "~/types/problem";
 import { LucideBadgeCheck, LucideCheck, LucideChevronLeft, LucideChevronRight, LucideClock, LucideCode, LucideCommand, LucideCpu, LucideFileText, LucideFlaskConical, LucideHome, LucideLayers, LucideLayers2, LucideListRestart, LucideLogIn, LucideLogOut, LucideLogs, LucideMessageCircle, LucideMoon, LucidePalette, LucidePlay, LucideScrollText, LucideSearch, LucideSun, LucideTimer, LucideUser, LucideUserPen, LucideUserPlus, LucideUsers, LucideX } from 'lucide-vue-next';
 
 
+// providers
 const { $device } = useNuxtApp();
+
+
+// composables
+const route = useRoute();
+const router = useRouter();
 
 const ws = useWs();
 const { theme } = useTheme();
 const { user,logout } = useAuth();
 const { lang, langInfo, t } = useLang();
 
+// stores
 const problemStore = useProblemStore();
 const problemsStore = useProblemsStore();
 const translationsStore = useTranslationsStore();
@@ -19,21 +27,22 @@ const translationsStore = useTranslationsStore();
 const { problem } = storeToRefs(problemStore);
 const { problems } = storeToRefs(problemsStore);
 
+
+// variables
 const code = ref("");
-const attempts = ref<any[]>([]);
 const ncase = ref<any>();
+const attempts = ref<any[]>([]);
 const editorIsLoaded = ref(false);
 const shortcutsIsOpen = ref(false);
 const logOutDialogIsOpen = ref(false);
-const selectedLanguage = ref<ILanguage | undefined>(undefined);
 const selectedLanguageModel = ref<string | undefined>("plaintext");
+const selectedLanguage = ref<ProgrammingLanguage | undefined>(undefined);
 
 
+
+// functions
 const checkAttempt = () => {
-    console.log(problem.value)
-    console.log(selectedLanguage)
-    console.log(code)
-    if (problem.value) {
+    if (problem.value && ws) {
         if (!selectedLanguage.value) {
             toast("Ogohlantirish", {
                 description: "Tilni tanlang",
@@ -46,7 +55,8 @@ const checkAttempt = () => {
                     language: selectedLanguage.value.uuid,
                     code: code.value
                 }
-            })
+            });
+            router.push({ name: "problems-uuid-attempts", params: { uuid: route.params.uuid } });
         }
     }
 }
@@ -57,13 +67,17 @@ useSeoMeta({
 });
 
 
+// hooks
 onMounted(() => {
-    ws.onMessage((message) => {
-        if (message.type === "attempt_case") {
-            attempts.value.unshift(message.data);
-            ncase.value = message.data;
-        }
-    })
+    if (ws) {
+
+        ws.onMessage((message) => {
+            if (message.type === "attempt_case") {
+                attempts.value.unshift(message.data);
+                ncase.value = message.data;
+            }
+        });
+    }
 });
 
 onUnmounted(() => {
@@ -78,7 +92,8 @@ onUnmounted(() => {
                 <Logo class="w-6 h-6" />
                 <p class="font-bold">algoland</p>
             </div>
-            <div class="flex items-center gap-1">
+            <!-- In next release -->
+            <!-- <div class="flex items-center gap-1">
                 <Button size="icon" variant="outline" v-tippy="'Oldingi'"><LucideChevronLeft :size="16" /> </Button>
                 <Sheet>
                     <SheetTrigger as-child>
@@ -103,7 +118,7 @@ onUnmounted(() => {
                     </SheetContent>
                 </Sheet>
                 <Button size="icon" variant="outline" v-tippy="'Keyingi'"><LucideChevronRight :size="16" /> </Button>
-            </div>
+            </div> -->
             <div>
                 <DropdownMenu>
                     <DropdownMenuTrigger v-tippy="'Ro\'yxatni ochish'">
@@ -278,7 +293,7 @@ onUnmounted(() => {
                 </div>
             </div>
             <div class="w-[calc(100%-3.5rem)] h-[calc(100%-3.1)]">
-                <ResizablePanelGroup :direction="$device === 'desktop' ? 'horizontal' : 'vertical'" class="w-full">
+                <ResizablePanelGroup :direction="$device === 'desktop' ? 'horizontal' : 'vertical'">
                     <ResizablePanel :default-size="50" :min-size="30" class="w-full">
                         <div class="w-full h-full flex flex-col">
                             <div class="w-full border-b pt-2 flex gap-2 px-3 overflow-auto" style="scrollbar-width: none;">
@@ -339,85 +354,11 @@ onUnmounted(() => {
                     </ResizablePanel>
                     <ResizableHandle with-handle />
                     <ResizablePanel :default-size="50" :collapsible="true">
-                        <ResizablePanelGroup direction="vertical">
-                            <ResizablePanel :default-size="50">
-                                <div class="w-full h-full bg-accent/30 flex flex-col items-center justify-center" v-if="!editorIsLoaded">
-                                    <LucideCode class="animate-bounce" :size="20" />
-                                    <p>Yuklanmoqda...</p>
-                                </div>
-                                <MonacoEditor v-model="code" @load="editorIsLoaded = true" :options="{ theme: theme === 'dark' ? 'algo-dark' : 'vs-light' }" :lang="selectedLanguage ? selectedLanguage.short : 'plaintext'" style="height: 100%;" />
-                            </ResizablePanel>
-                            <ResizableHandle with-handle />
-                            <ResizablePanel :default-size="50">
-                                <div class="flex h-full">
-                                    <div class="flex-1 flex flex-col gap-2 w-full">
-                                        <ScrollArea class="h-full p-3">
-                                            {{ ncase }}
-                                            <NumberFlow v-if="ncase" :value="ncase.test" />
-                                            <!-- <Accordion type="single" collapsible class="w-full space-y-2">
-                                                <AccordionItem v-for="attempt in attempts" :value="attempt.test.toString()" class="px-4 py-2 rounded-md border last:border-b">
-                                                    <AccordionTrigger class="py-2 hover:no-underline gap-2">
-                                                        <div class="flex-1 text-start">
-                                                            <span class="border rounded-md px-1 py-px" :class="{
-                                                                'border-green-500 bg-green-500/10 text-green-500': attempt.status === 'ac',
-                                                                'border-red-500 bg-red-500/10 text-red-500': attempt.status !== 'ac',
-                                                            }">
-                                                                {{ attempt.status === 'wa' ? `WrongAnswer(${attempt.test})` : 'Accepted' }}
-                                                            </span>
-                                                        </div>
-                                                        <div class="flex gap-2">
-                                                            <div class="flex items-center gap-1 text-green-500">
-                                                                <LucideTimer :size="15" />
-                                                                <span>{{ attempt.time }}ms</span>
-                                                            </div>
-                                                            <div class="flex items-center gap-1 text-blue-500">
-                                                                <LucideCpu :size="15" />
-                                                                <span>{{ attempt.memory }}MB</span>
-                                                            </div>
-                                                        </div>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent class="flex flex-col gap-2">
-                                                        <div class="border rounded-md">
-                                                            <Table>
-                                                                <TableBody>
-                                                                    <TableRow>
-                                                                        <TableCell>Test</TableCell>
-                                                                        <TableCell class="border-l text-center">{{ attempt.test }}</TableCell>
-                                                                    </TableRow>
-                                                                    <TableRow>
-                                                                        <TableCell>Vaqt (ms)</TableCell>
-                                                                        <TableCell class="border-l text-center">{{ (attempt.time.toString().padEnd(3, "0")) }}</TableCell>
-                                                                    </TableRow>
-                                                                    <TableRow>
-                                                                        <TableCell>Kirish</TableCell>
-                                                                        <TableCell class="border-l text-center">{{ attempt.stdin }}</TableCell>
-                                                                    </TableRow>
-                                                                    <TableRow>
-                                                                        <TableCell>Kutilgan (ms)</TableCell>
-                                                                        <TableCell class="border-l text-center">{{ attempt.expected }}</TableCell>
-                                                                    </TableRow>
-                                                                    <TableRow>
-                                                                        <TableCell>Chiqish</TableCell>
-                                                                        <TableCell class="border-l text-center">{{ attempt.stdout }}</TableCell>
-                                                                    </TableRow>
-                                                                </TableBody>
-                                                            </Table>
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            </Accordion> -->
-                                            <div class="border rounded-md">
-                                                <p>50</p>
-                                                <LucideClock />
-                                                <p>10ms</p>
-                                                <LucideCpu />
-                                                <p>10MB</p>
-                                            </div>
-                                        </ScrollArea>
-                                    </div>
-                                </div>
-                            </ResizablePanel>
-                        </ResizablePanelGroup>
+                        <div class="w-full h-full bg-accent/30 flex flex-col items-center justify-center" v-if="!editorIsLoaded">
+                            <LucideCode class="animate-bounce" :size="20" />
+                            <p>Yuklanmoqda...</p>
+                        </div>
+                        <MonacoEditor v-model="code" @load="editorIsLoaded = true" :options="{ theme: theme === 'dark' ? 'algo-dark' : 'vs-light' }" :lang="selectedLanguage ? selectedLanguage.short : 'plaintext'" style="height: 100%;" />
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </div>

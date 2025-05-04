@@ -1,12 +1,13 @@
-import type { IProfile } from "~/types";
+import type { User } from "~/types/auth";
+
 
 export const useUserStore = defineStore("user", {
-    state: (): { profile: IProfile | null } => ({
+    state: (): { profile: User | null } => ({
         profile: null
     }),
 
     actions: {
-        set(profile: IProfile){
+        set(profile: User){
             this.profile = profile;
         }
     }

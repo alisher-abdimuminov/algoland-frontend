@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LucideCheckCircle, LucideChevronsLeftRightEllipsis, LucideCircleCheckBig, LucideCode, LucideCpu, LucideThumbsDown, LucideThumbsUp, LucideTimer, LucideWrapText } from 'lucide-vue-next';
+import { LucideCheckCircle } from 'lucide-vue-next';
 import mark from '~/composables/useMark';
 
 

@@ -1,5 +1,6 @@
 import type { WSNotification } from "~/types/codes";
 
+
 export const useNotificationsStore = defineStore("notifications", {
     state: (): { notifications: WSNotification[] } => ({
         notifications: []

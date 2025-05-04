@@ -5,7 +5,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const isAllowed = computed(() => {
-    return langIcons.includes(props.name);
+    return programmingLanguagesIcons.includes(props.name);
 });
 </script>
 

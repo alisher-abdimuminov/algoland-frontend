@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { LucideBot, LucideHeart } from 'lucide-vue-next';
-import type { INotification, IResponse } from '~/types';
-import format from '~/utils/datetime';
+import type { Response } from '~/types';
+import type { Notification } from '~/types/notification';
 
 
 
@@ -11,14 +11,14 @@ const isLoading = ref(true);
 const isWaiting = ref(false);
 
 
-const notifications = ref<INotification[]>([])
+const notifications = ref<Notification[]>([])
 
 
 const getNotificaitons = async () => {
     isWaiting.value = true;
     if (user.value) {
 
-        let response = await $fetch<IResponse>(api("notifications") + "?all=true", {
+        let response = await $fetch<Response>(api("notifications") + "?all=true", {
             method: "GET",
             headers: {
                 Authorization: `Token ${user.value.token}`           
@@ -28,7 +28,7 @@ const getNotificaitons = async () => {
         if (response.status === "error") {
 
         } else {
-            let decoded = jsonify<INotification[]>(decode(response.data));
+            let decoded = jsonify<Notification[]>(decode(response.data));
             if (decoded) {
                 notifications.value = decoded;
             }
@@ -70,7 +70,7 @@ onMounted(() => {
 
         <div class="flex flex-col gap-5 border bg-accent/30 dark:bg-accent/10 p-3 md:p-5 rounded-md divide-y" v-if="user">
             <div class="flex items-start gap-2 pt-3" v-for="notification in notifications">
-                <Avatar v-if="notification.type !== 'admin' && notification.type !== 'news'">
+                <Avatar v-if="notification.type === 'admin'">
                     <AvatarImage :src="`/api/v1/avatar/${user.username}`"></AvatarImage>
                 </Avatar>
                 <div v-else class="w-10 h-10 rounded-full border flex items-center justify-center bg-accent/30">
@@ -80,7 +80,7 @@ onMounted(() => {
                     <div class="flex items-center justify-between">
                         <p class="text-sm">New follower</p>
                         <div class="flex items-center gap-1">
-                            <span class="text-muted-foreground text-xs">{{ format(notification.created) }}</span>
+                            <span class="text-muted-foreground text-xs">{{ formatDateTime(notification.created) }}</span>
                         </div>
                     </div>
                     <div class="text-xs flex items-center gap-1">

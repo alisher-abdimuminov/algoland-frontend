@@ -1,5 +1,7 @@
 import { defineNuxtPlugin } from "#app";
-import type { IResponse, IUser } from "~/types";
+import type { Response } from "~/types";
+import type { User } from "~/types/auth";
+
 
 export default defineNuxtPlugin((nuxtApp) => {
     const { user, logout } = useAuth();
@@ -10,7 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         nuxtApp.hook("app:created", async () => {
             const { status, data } = await useAsyncData(
                 "profile",
-                () => $fetch<IResponse>(api("auth/profile"), {
+                () => $fetch<Response>(api("auth/profile"), {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${user.value?.token}`,
@@ -28,7 +30,7 @@ export default defineNuxtPlugin((nuxtApp) => {
                     if (data.value.status === "error") {
                         logout();
                     } else {
-                        let decoded = jsonify<IUser>(decode(data.value.data));
+                        let decoded = jsonify<User>(decode(data.value.data));
                         if (decoded) {
                             user.value = data.value.data;
                         }

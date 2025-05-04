@@ -1,13 +1,16 @@
 <script setup lang="ts">
-
+// interfaces and types
 interface Props {
     isAuth: boolean;
 }
 
-const route = useRoute();
-
+// props, models, ...
 const props = defineProps<Props>();
 
+// composables
+const route = useRoute();
+
+// local composables
 const { user } = useAuth();
 
 

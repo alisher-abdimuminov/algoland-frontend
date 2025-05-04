@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import format from '~/utils/datetime';
 import { ListboxContent, ListboxItem, ListboxRoot } from 'reka-ui';
 import { LucideCheck, LucideCheckCheck, LucideEye } from 'lucide-vue-next';
-import type { IResponse } from '~/types';
-import type { IPost } from '~/types/post';
+import type { Response } from '~/types';
+import type { Post } from '~/types/post';
 import { toast } from '~/components/ui/toast';
 import mark from '~/composables/useMark';
 
@@ -92,7 +91,7 @@ const editPost = async () => {
             "content": post.value.content,
             "tags": selectedTags.value,
         }
-        let response = await $fetch<IResponse>(api(`posts/post/${post.value.uuid}/edit`), {
+        let response = await $fetch<Response>(api(`posts/post/${post.value.uuid}/edit`), {
             method: "POST",
             body: JSON.stringify({
                 "data": encode(JSON.stringify(data))
@@ -108,7 +107,7 @@ const editPost = async () => {
                 errors.value = decoded;
             }
         } else {
-            let decoded = jsonify<IPost>(decode(response.data));
+            let decoded = jsonify<Post>(decode(response.data));
             if (decoded) {
                 postStore.set(decoded);
             }
@@ -131,7 +130,7 @@ useSeoMeta({
     description: post.value?.description,
     author: `${post.value?.author.first_name} ${post.value?.author.last_name}`,
     articleAuthor: [`${post.value?.author.first_name} ${post.value?.author.last_name}`],
-    articlePublishedTime: format(post.value ? post.value.created : ''),
+    articlePublishedTime: formatDateTime(post.value ? post.value.created : ''),
 });
 
 
@@ -181,7 +180,7 @@ onMounted(() => {
         <div class="flex flex-col gap-1">
             <span :class="{ 'text-red-500': errors.includes('title') }" class="text-xs text-muted-foreground">Title</span>
             <input type="text" v-model="post.title" class="bg-transparent outline-none text-3xl font-bold">
-            <span class="text-xs text-muted-foreground">{{ format(post.created, true) }}</span>
+            <span class="text-xs text-muted-foreground">{{ formatDateTime(post.created, true) }}</span>
         </div>
         <div class="flex flex-col gap-2 h-full w-full">
             <div class="flex items-center justify-between">

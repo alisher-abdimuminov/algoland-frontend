@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { LucideBadgeCheck, LucideMinus, LucidePlus } from 'lucide-vue-next';
-import type { IProfile } from '~/types';
+import type { User } from '~/types/auth';
 import type { WSUserStatus } from '~/types/codes';
 
 
-const props = defineProps<{ profile: IProfile }>();
+const props = defineProps<{ profile: User }>();
 
 const ws = useWs();
 const { user } = useAuth();
 
 
 const follow = () => {
-    if (user.value && props.profile) {
+    if (user.value && props.profile &&ws) {
         ws.sendMessage({
             type: "follow",
             data: {
@@ -23,7 +23,7 @@ const follow = () => {
 }
 
 const unfollow = () => {
-    if (user.value && props.profile) {
+    if (user.value && props.profile && ws) {
         ws.sendMessage({
             type: "unfollow",
             data: {
@@ -36,13 +36,15 @@ const unfollow = () => {
 
 
 onMounted(() => {
-    ws.onMessage<WSUserStatus>((message) => {
-        if (message.type === "last_seen") {
-            if (message.data.uuid === props.profile.uuid) {
-                props.profile.last_seen = message.data.last_seen;
+    if (user.value) {
+        ws.onMessage<WSUserStatus>((message) => {
+            if (message.type === "last_seen") {
+                if (message.data.uuid === props.profile.uuid) {
+                    props.profile.last_seen = message.data.last_seen;
+                }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 
@@ -60,10 +62,10 @@ onMounted(() => {
             </div>
             <div class="grid gap-0">
                 <NuxtLink :to="{ name: 'users-username', params: { username: profile.username } }" class="flex items-center gap-1 truncate text-sm md:text-base">
-                    <p class="truncate">{{ getCountryByCode(profile.country)?.flag }} {{ profile.full_name }}</p>
+                    <p class="truncate">{{ getCountryByCode(profile.country)?.flag }} {{ profile.first_name }} {{ profile.last_name }}</p>
                     <LucideBadgeCheck v-if="profile.is_premium" class=text-blue-500 :size="20" />
                 </NuxtLink>
-                <span class="text-xs text-muted-foreground font-bold">{{ profile.rank }}</span>
+                <span class="text-xs text-muted-foreground font-bold">{{ profile.rating }}</span>
             </div>
         </div>
         <div v-if="user && !profile.is_following && user.uuid !== profile.uuid">

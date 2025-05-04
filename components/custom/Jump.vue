@@ -1,7 +1,9 @@
 <script setup lang="ts">
+// imports
 import { LucideCheck, LucideHome, LucideMoon, LucideSun } from 'lucide-vue-next';
 
 
+// props, models, ...
 const props = defineProps({
     shortcut: {
         type: String,
@@ -9,19 +11,26 @@ const props = defineProps({
     }
 });
 
+// stores
 const translationsStore = useTranslationsStore();
 
-const { lang } = useLang();
+
+// composables
+const { lang, t } = useLang();
 const { theme } = useTheme();
 
+
+// variables
 const isOpen = ref(false);
 
 
+// functions
 const handleIsOpenChange = () => {
     isOpen.value = !isOpen.value;
 }
 
 
+// hooks
 onMounted(() => {
     window.onkeydown = (event) => {
         if (event.key === props.shortcut) {
@@ -46,21 +55,41 @@ onMounted(() => {
                 <CommandGroup>
                     <CommandItem value="home">
                         <LucideHome />
-                        <span>Home</span>
+                        <span>{{ t("home") }}</span>
+                    </CommandItem>
+                    <CommandItem value="problems">
+                        <LucideHome />
+                        <span>{{ t("problems") }}</span>
+                    </CommandItem>
+                    <CommandItem value="contests">
+                        <LucideHome />
+                        <span>{{ t("contests") }}</span>
+                    </CommandItem>
+                    <CommandItem value="users">
+                        <LucideHome />
+                        <span>{{ t("users") }}</span>
+                    </CommandItem>
+                    <CommandItem value="attempts">
+                        <LucideHome />
+                        <span>{{ t("attempts") }}</span>
+                    </CommandItem>
+                    <CommandItem value="posts">
+                        <LucideHome />
+                        <span>{{ t("posts") }}</span>
                     </CommandItem>
                 </CommandGroup>
                 <CommandSeparator />
                 <CommandGroup heading="Theme">
                     <CommandItem value="dark" @click="theme = 'dark'">
                         <LucideMoon />
-                        <span>Dark</span>
+                        <span>{{ t("dark") }}</span>
                         <CommandShortcut v-if="theme === 'dark'">
                             <LucideCheck />
                         </CommandShortcut>
                     </CommandItem>
                     <CommandItem value="light" @click="theme = 'light'">
                         <LucideSun />
-                        <span>Light</span>
+                        <span>{{ t("light") }}</span>
                         <CommandShortcut v-if="theme === 'light'">
                             <LucideCheck />
                         </CommandShortcut>

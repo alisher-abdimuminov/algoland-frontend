@@ -1,5 +1,6 @@
-import type { IResponse } from "~/types";
+import type { Response } from "~/types";
 import type { WSNotification } from "~/types/codes";
+
 
 export default defineNuxtPlugin((nuxtApp) => {
     const { user, logout } = useAuth();
@@ -12,7 +13,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         nuxtApp.hook("app:created", async () => {
             const { status, data } = await useAsyncData(
                 "notifications",
-                () => $fetch<IResponse>(api("notifications"), {
+                () => $fetch<Response>(api("notifications"), {
                     method: "GET",
                     headers: {
                         Authorization: `Token ${user.value?.token}`,

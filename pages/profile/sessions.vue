@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import { LucideChevronDown } from 'lucide-vue-next';
-import type { IPage, IResponse, ISession } from '~/types';
-import format from '~/utils/datetime';
+import type { Pagination, Response } from '~/types';
+import type { Session } from '~/types/auth'; 
 
 
 
 const { user } = useAuth();
 
-const page = ref<IPage>({
+const page = ref<Pagination>({
     pages: 0,
     number: 1,
     next: null,
     previous: null,
     search: "",
 });
-const sessions = ref<ISession[]>([]);
+const sessions = ref<Session[]>([]);
 const isWaiting = ref(false);
 const isLoading = ref(true);
 
 
 const getSessions = async (pageNumber: number = 1) => {
     isWaiting.value = true;
-    const response = await $fetch<IResponse>(api("auth/sessions") + `?page=${pageNumber}`, {
+    const response = await $fetch<Response>(api("auth/sessions") + `?page=${pageNumber}`, {
         method: 'GET',
         headers: {
             'Authorization': `Token ${user.value?.token}`
@@ -31,7 +31,7 @@ const getSessions = async (pageNumber: number = 1) => {
     if (response.status === "error") {
         
     } else {
-        let decoded = jsonify<{ page: IPage, sessions: ISession[] }>(decode(response.data));
+        let decoded = jsonify<{ page: Pagination, sessions: Session[] }>(decode(response.data));
         
         if (decoded) {
             page.value = decoded.page;
@@ -101,7 +101,7 @@ onMounted(() => {
                     <div class="flex flex-col">
                         <span>{{ session.os.family }}</span>
                         <span class="text-sm">{{ session.browser.family }}</span>
-                        <span class="text-muted-foreground text-xs">{{ format(session.created, true) }}</span>
+                        <span class="text-muted-foreground text-xs">{{ formatDateTime(session.created, true) }}</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <Switch :id="session.uuid" :disabled="session.uuid === user.session || !session.is_active" v-model:model-value="session.is_active" @update:model-value="(value) => disableSession(session.uuid)" />

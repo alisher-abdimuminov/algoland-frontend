@@ -1,19 +1,91 @@
 <script setup lang="ts">
-import { LucideCheckCheck } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+import type { Pagination, Response } from '~/types';
+import type { User } from '~/types/auth';
 
-
-
+// composables
 const { user } = useAuth();
 
+
+
+// variables
+const search = ref("");
+const users = ref<User[]>([]);
 const isWaiting = ref(false);
+const isSearching = ref(false);
+let typingTimer: NodeJS.Timeout | null = null;
 const userInfo = ref({
-    full_name: user.value?.full_name ?? "",
+    first_name: user.value?.first_name ?? "",
+    last_name: user.value?.last_name ?? "",
     gender: user.value?.gender,
     country: user.value?.country,
     city: user.value?.city ?? "",
     bio: user.value?.bio ?? "",
-    birth_date: user.value?.birth_date,
+    coach: user.value?.coach,
+    token: user.value?.token,
+    session: user.value?.session,
 });
+
+
+// functions
+const editProfile = async () => {
+    if (user.value) {
+        isWaiting.value = true;
+        let response = await $fetch<Response>(api("auth/profile/edit"), {
+            method: "POST",
+            headers: {
+                Authorization: `Token ${user.value.token}`        
+            },
+            body: JSON.stringify({
+                "data": encode(JSON.stringify(userInfo.value))
+            })
+        });
+        
+        if (response.status === 'error') {
+            toast("Xatolik", {
+                description: decode(response.data)
+            })
+        } else {
+            toast("Ajoyib", {
+                description: "Saqlandi"
+            });
+            console.log(jsonify(decode(response.data)));
+            user.value = response.data;
+        }
+        isWaiting.value = false;
+    }
+}
+
+const getUsers = async (pageNumber: number = 1) => {
+    isSearching.value = true;
+    let response = await $fetch<Response>(api("users") + `?search=${search.value}`, {
+        method: "GET",
+        headers: {
+            ...(user ? {"Authorization": `Token ${user.value?.token}`} : {})
+        }
+    });
+
+    if (response.status === "error") {
+
+    } else {
+        let decoded = jsonify<{ page: Pagination, users: User[] }>(decode(response.data));
+        if (decoded) {
+            users.value = decoded.users;
+        }
+    }
+    isSearching.value = false;
+    console.log(users.value);
+}
+
+const onInput = (): void => {
+    if (typingTimer) {
+        clearTimeout(typingTimer);
+    }
+
+    typingTimer = setTimeout(() => {
+        getUsers();
+    }, 2000);
+};
 
 
 definePageMeta({
@@ -21,6 +93,8 @@ definePageMeta({
 });
 
 
+
+// hooks
 onMounted(() => {
 });
 </script>
@@ -92,12 +166,29 @@ onMounted(() => {
 
             <div class="flex flex-col gap-1 border rounded-md bg-accent/30 dark:bg-accent/10">
                 <div class="flex flex-col gap-3 p-3 md:p-5">
-                    <p class="text-xl md:text-2xl font-bold">To'liq ism</p>
+                    <p class="text-xl md:text-2xl font-bold">Ism</p>
                     <span class="text-xs md:text-sm"></span>
                     <div class="relative">
-                        <Input v-model="userInfo.full_name" />
+                        <Input v-model="userInfo.first_name" />
                         <div class="absolute top-0 right-0 w-10 h-full flex items-center justify-center">
-                            <Copy :value="userInfo.full_name" />
+                            <Copy :value="userInfo.first_name" />
+                        </div>
+                    </div>
+                </div>
+                <Separator />
+                <div class="p-3 md:p-5">
+                    <span class="text-xs text-muted-foreground">Ko'pi bilan 32 ta belgidan foydalaning.</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1 border rounded-md bg-accent/30 dark:bg-accent/10">
+                <div class="flex flex-col gap-3 p-3 md:p-5">
+                    <p class="text-xl md:text-2xl font-bold">Familiya</p>
+                    <span class="text-xs md:text-sm"></span>
+                    <div class="relative">
+                        <Input v-model="userInfo.last_name" />
+                        <div class="absolute top-0 right-0 w-10 h-full flex items-center justify-center">
+                            <Copy :value="userInfo.last_name" />
                         </div>
                     </div>
                 </div>
@@ -132,7 +223,9 @@ onMounted(() => {
                     <span class="text-xs md:text-sm">Mamlakatingizni tanlang</span>
                     <Select v-model="userInfo.country">
                         <SelectTrigger>
-                            <SelectValue placeholder="Tanlang" />
+                            <SelectValue placeholder="Tanlang">
+                                <span>{{ userInfo.country }}</span>
+                            </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="country in countries" :value="country.code">{{ country.name }} {{ country.flag }}</SelectItem>
@@ -183,24 +276,24 @@ onMounted(() => {
 
             <div class="flex flex-col gap-1 border rounded-md bg-accent/30 dark:bg-accent/10">
                 <div class="flex flex-col gap-3 p-3 md:p-5">
-                    <p class="text-xl md:text-2xl font-bold">Tug'ilgan sana</p>
+                    <p class="text-xl md:text-2xl font-bold">Murabbiy</p>
                     <span class="text-xs md:text-sm"></span>
                     <div class="relative">
-                        <Input v-model="userInfo.birth_date" />
-                    </div>
-                </div>
-                <Separator />
-                <div class="p-3 md:p-5">
-                    <div><CodeSpan value="YYYY-mm-dd" /> <span class="text-xs text-muted-foreground">formatidan foydalaning.</span></div>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-1 border rounded-md bg-accent/30 dark:bg-accent/10">
-                <div class="flex flex-col gap-3 p-3 md:p-5">
-                    <p class="text-xl md:text-2xl font-bold">Followers</p>
-                    <span class="text-xs md:text-sm"></span>
-                    <div class="relative">
-                        <Input v-model="userInfo.birth_date" />
+                        <Search v-model:model-value="search" :is-waiting="isSearching" @input="onInput" />
+                        
+                        <Select v-model="userInfo.coach">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select coach">
+                                    <Profile v-if="userInfo.coach" :profile="userInfo.coach" />
+                                </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="coach in users" :value="coach.id">
+                                    <Profile :profile="coach" />
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {{ users }}
                     </div>
                 </div>
                 <Separator />
@@ -212,8 +305,8 @@ onMounted(() => {
     </Auth>
     <div class="z-100 w-[calc(100%-3.5rem)] bg-background/70 backdrop-blur-sm border-t fixed bottom-0">
         <div class="flex items-center justify-end p-2 md:p-3">
-            <Button :disabled="isWaiting">
-                <Loader /> Saqlash
+            <Button @click="editProfile" :disabled="isWaiting">
+                <Loader v-if="isWaiting" /> Saqlash
             </Button>
         </div>
     </div>

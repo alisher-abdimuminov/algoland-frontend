@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { IPage, IResponse, IProfile } from '~/types';
+import type { Pagination, Response } from '~/types';
+import type { User } from '~/types/auth';
 import useWs from "~/composables/useWs"
 import type { WSUserStatus } from "~/types/codes";
 
@@ -11,14 +12,14 @@ const ws = useWs();
 const { user } = useAuth();
 
 
-const pagination = ref<IPage>({
+const pagination = ref<Pagination>({
     next: 0,
     number: 1,
     pages: 0,
     previous: 0,
     search: " "
 });
-const users = ref<IProfile[]>([]);
+const users = ref<User[]>([]);
 const isLoading = ref(true);
 const isWaiting = ref(false);
 let typingTimer: NodeJS.Timeout | null = null;
@@ -37,7 +38,7 @@ const onInput = (): void => {
 
 const getUsers = async (pageNumber: number = 1) => {
     isWaiting.value = true;
-    let response = await $fetch<IResponse>(api("users") + `?page=${pageNumber}&search=${pagination.value.search}`, {
+    let response = await $fetch<Response>(api("users") + `?page=${pageNumber}&search=${pagination.value.search}`, {
         method: "GET",
         headers: {
             ...(user ? {"Authorization": `Token ${user.value?.token}`} : {})
@@ -47,7 +48,7 @@ const getUsers = async (pageNumber: number = 1) => {
     if (response.status === "error") {
 
     } else {
-        let decoded = jsonify<{ page: IPage, users: any[] }>(decode(response.data));
+        let decoded = jsonify<{ page: Pagination, users: any[] }>(decode(response.data));
         if (decoded) {
             pagination.value = decoded.page;
             users.value = decoded.users;
@@ -55,6 +56,7 @@ const getUsers = async (pageNumber: number = 1) => {
     }
     router.push({ name: "users", query: { page: pagination.value.number, search: pagination.value.search } });
     isWaiting.value = false;
+    console.log(users.value);
 }
 
 
@@ -79,15 +81,6 @@ useSeoMeta({
 onMounted(() => {
     getUsers();
     isLoading.value = false;
-
-    ws.onMessage<WSUserStatus>((message) => {
-        if (message.type === "last_seen") {
-            let target = users.value.find((iuser) => iuser.uuid === message.data.uuid);
-            if (target) {
-                target.last_seen = message.data.last_seen;
-            }
-        }
-    });
 });
 </script>
 

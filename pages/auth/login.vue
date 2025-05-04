@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import * as z from "zod";
 import { useForm } from "vee-validate";
-import type { IResponse } from "~/types";
+import type { Response } from "~/types";
 import { toast } from "~/components/ui/toast";
 import { toTypedSchema } from '@vee-validate/zod';
 import { LucideEye, LucideEyeOff } from 'lucide-vue-next';
-import type { LoginCode, VerifyCode, WSNotification } from "~/types/codes";
+import type { LoginCode, WSNotification } from "~/types/codes";
 
 
 // composables
@@ -42,7 +42,7 @@ const getNotifications = async () => {
     const { user } = useAuth();
     if (user.value) {
 
-        let response = await $fetch<IResponse>(api("notifications"), {
+        let response = await $fetch<Response>(api("notifications"), {
             method: "GET",
             headers: {
                 Authorization: `Token ${user.value.token}`           
@@ -63,7 +63,7 @@ const getNotifications = async () => {
 
 const login = handleSubmit(async (values) => {
     isWaiting.value = true;
-    let response = await $fetch<IResponse<LoginCode>>(api("auth/login"), {
+    let response = await $fetch<Response<LoginCode>>(api("auth/login"), {
         method: "POST",
         body: JSON.stringify({
             "data": encode(JSON.stringify(values))
@@ -78,14 +78,10 @@ const login = handleSubmit(async (values) => {
         setFieldError("username", t("login_003"));
     } else if (response.code === "login_004") {
         setFieldError("password", t("login_004"));
-        toast({
-            title: "Xatolik",
-            description: t("login_004")
-        });
     } else if (response.code === "login_005") {
         console.log(t("login_005"));
     } else if (response.code === "login_006") {
-        router.push({ name: "auth-token", params: { token: encode(JSON.stringify({ username: values.username, expires: new Date(new Date().getTime() + 5 * 60 * 1000).getTime() })) } });
+        setFieldError("username", t("login_006"));
     } else if (response.code === "login_007") {
         user.value = response.data;
         toast({
@@ -98,9 +94,11 @@ const login = handleSubmit(async (values) => {
             router.push({ name: "index" });
         }
         setTimeout(() => {
-            ws.close();
-            ws.reconnect();
-            getNotifications();
+            if (user.value) {
+                ws.close();
+                ws.connect(user.value.token);
+                getNotifications();
+            }
         }, 1000);
     }
     
@@ -129,7 +127,7 @@ onMounted(() => {
     <Auth :is-auth="false" class="sm:mx-auto sm:w-full sm:max-w-sm">
         <div class="sm:mx-auto sm:w-full sm:max-w-sm">
             <Logo class="mx-auto w-8 h-8" />
-            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight">Sign in to your account</h2>
+            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight">{{ t("signin_to_your_account") }}</h2>
         </div>
 
         <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">

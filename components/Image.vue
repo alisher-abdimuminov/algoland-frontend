@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IResponse } from '~/types';
+import { api } from '~/utils';
 
 
 interface Props {

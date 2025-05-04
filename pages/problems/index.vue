@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { AlgoCalendarData, IPage, IResponse } from '~/types';
-import type { IProblems, IProblemTag } from '~/types/problem';
-import { Icon as Iconify } from '@iconify/vue/dist/iconify.js';
+import type { Pagination, Response } from '~/types';
+import type { Problem, Tag } from '~/types/problem';
 import { LucideBadgeCheck, LucideCircle, LucideCheck, LucideListCheck, LucidePlus, LucideSearch, LucideSettings, LucideArrowUpDown } from 'lucide-vue-next';
 import type { AddProblem } from '~/types/codes';
 import { toast } from '~/components/ui/toast';
+import type { AlgoCalendarData } from '~/components/custom/AlgoCalendar.vue';
 
 
 const route = useRoute();
@@ -17,8 +17,8 @@ const problemTags = useProblemTagsStore();
 const { tags } = storeToRefs(problemTags);
 
 
-const problems = ref<IProblems[]>([]);
-    const pagination = ref<IPage>({
+const problems = ref<Problem[]>([]);
+    const pagination = ref<Pagination>({
     next: 0,
     number: 1,
     pages: 0,
@@ -111,7 +111,7 @@ const onInput = (): void => {
 
 const getProblems = async (pageNumber: number = 1) => {
     isWaiting.value = true;
-    let response = await $fetch<IResponse>(api("problems") + `?page=${pageNumber}&search=${pagination.value.search}`, {
+    let response = await $fetch<Response>(api("problems") + `?page=${pageNumber}&search=${pagination.value.search}`, {
         method: "GET",
         headers: {
             ...(user ? {"Authorization": `Token ${user.value?.token}`} : {})
@@ -121,7 +121,7 @@ const getProblems = async (pageNumber: number = 1) => {
     if (response.status === "error") {
 
     } else {
-        let decoded = jsonify<{ page: IPage, problems: IProblems[] }>(decode(response.data));
+        let decoded = jsonify<{ page: Pagination, problems: Problem[] }>(decode(response.data));
         console.log(decoded);
         if (decoded) {
             pagination.value = decoded.page;
@@ -135,7 +135,7 @@ const getProblems = async (pageNumber: number = 1) => {
 const addProblem = async () => {
     isCreating.value = true;
     if (user.value) {
-        let response = await $fetch<IResponse<AddProblem>>(api("problems/add"), {
+        let response = await $fetch<Response<AddProblem>>(api("problems/add"), {
             method: "POST",
             headers: {
                 Authorization: `Token ${user.value.token}`
@@ -265,8 +265,8 @@ onMounted(() => {
                                         <span class="text-xs text-orange-500 p-1" v-else>Medium</span>
                                     </TableCell>
                                     <TableCell>
-                                        <Avatar v-tippy="`${problem.author.full_name}`">
-                                            <AvatarFallback>{{ problem.author.full_name.charAt(0) }} {{ problem.author.full_name.charAt(0) }}</AvatarFallback>
+                                        <Avatar v-tippy="`${problem.author.first_name} ${problem.author.last_name}`">
+                                            <AvatarFallback>{{ problem.author.first_name.charAt(0) }} {{ problem.author.last_name.charAt(0) }}</AvatarFallback>
                                             <AvatarImage :src="problem.author.image"></AvatarImage>
                                         </Avatar>
                                     </TableCell>

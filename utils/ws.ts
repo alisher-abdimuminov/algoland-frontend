@@ -10,20 +10,19 @@ class WebSocketConnector {
     constructor(url: string, reconnectInterval = 3000) {
         this.url = url;
         this.reconnectInterval = reconnectInterval;
-        this.connect();
     }
 
-    private connect(url: string = this.url) {
-        this.socket = new WebSocket(url);
+    public connect(token: string) {
+        this.socket = new WebSocket(this.url + token);
 
         this.socket.addEventListener("open", () => {
-            console.log("[WS] Connected");
+            console.log("Ulandi");
         });
 
         this.socket.addEventListener("close", () => {
-            console.log("[WS] Disconnected");
+            console.log("Uzildi");
             if (this.shouldReconnect) {
-                setTimeout(() => this.connect(), this.reconnectInterval);
+                setTimeout(() => this.connect(token), this.reconnectInterval);
             }
         });
 
@@ -35,7 +34,7 @@ class WebSocketConnector {
         });
 
         this.socket.addEventListener("error", (e) => {
-            console.error("[WS] Error", e);
+            console.error("Xatolik", e);
         });
     }
 
@@ -43,7 +42,7 @@ class WebSocketConnector {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(encode(JSON.stringify(message)));
         } else {
-            console.warn("[WS] Cannot send, socket not open");
+            console.warn("Yuborilmadi. Ulanish ochiq emas.");
         }
     }
 
@@ -52,18 +51,9 @@ class WebSocketConnector {
     }
 
     public close() {
-        console.log("[WS] Closed");
+        console.log("Yopildi");
         this.shouldReconnect = false;
         this.socket?.close();
-    }
-
-    public reconnect() {
-        console.log("[WS] Reconnecting...");
-        this.shouldReconnect = true;
-        this.close();
-        const { user } = useAuth();
-        console.log("user", user.value);
-        setTimeout(() => this.connect(`ws://localhost:8000/ws/?token=${user.value?.token}`), 1000);
     }
 }
 
@@ -71,8 +61,17 @@ let instance: WebSocketConnector | null = null;
 
 export function useWebSocket(): WebSocketConnector {
     const { user } = useAuth();
+    const config = useRuntimeConfig();
+    let wsUrl: string = "";
+
+    if (config.public.isProduction) {
+        wsUrl = config.public.production.wss;
+    } else {
+        wsUrl = config.public.deployment.ws;
+    }
+    
     if (!instance) {
-        instance = new WebSocketConnector(`wss://api.algoland.uz/ws/?token=${user.value?.token}`);
+        instance = new WebSocketConnector(`${wsUrl}/?token=`);
     }
     return instance;
 }

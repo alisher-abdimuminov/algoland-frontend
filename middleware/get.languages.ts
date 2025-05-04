@@ -1,5 +1,6 @@
-import type { IResponse } from "~/types";
-import type { ILanguage } from "~/types/problem";
+import type { Response } from "~/types";
+import type { ProgrammingLanguage } from "~/types/problem";
+
 
 export default defineNuxtRouteMiddleware(async(to, from) => {
     const languagesStore = useLanguagesStore();
@@ -7,11 +8,11 @@ export default defineNuxtRouteMiddleware(async(to, from) => {
     const { languages } = storeToRefs(languagesStore);
 
     if (languages.value.length === 0) {
-        const response = await $fetch<IResponse>(api(`languages`));
+        const response = await $fetch<Response>(api(`languages`));
         if (response.status === "error") {
             return navigateTo({ name: 'index' });
         } else {
-            let decoded = jsonify<ILanguage[]>(decode(response.data));
+            let decoded = jsonify<ProgrammingLanguage[]>(decode(response.data));
             if (decoded) {
                 languagesStore.push(decoded);
             }

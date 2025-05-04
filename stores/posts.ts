@@ -1,22 +1,22 @@
-import type { IPost, IPostTag } from "~/types/post";
+import type { Post, Tag } from "~/types/post";
 
 export const usePostStore = defineStore("post", {
-    state: (): { post: IPost | null } => ({
+    state: (): { post: Post | null } => ({
         post: null
     }),
     actions: {
-        set(post: IPost) {
+        set(post: Post) {
             this.post = post;
         }
     }
 });
 
 export const usePostTagsStore = defineStore("postTags", {
-    state: (): { tags: IPostTag[] } => ({
+    state: (): { tags: Tag[] } => ({
         tags: []
     }),
     actions: {
-        set(tags: IPostTag[]) {
+        set(tags: Tag[]) {
             this.tags = tags;
         }
     }

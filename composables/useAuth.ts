@@ -1,4 +1,6 @@
-import type { IResponse, IUser } from "~/types";
+import type { Response } from "~/types";
+import type { User } from "~/types/auth";
+
 
 export default function useAuth() {
     const ws = useWs();
@@ -11,7 +13,7 @@ export default function useAuth() {
 
     const user = computed({
         get() {
-            return jsonify<IUser>(decode(userCookie.value));
+            return jsonify<User>(decode(userCookie.value));
         },
         set(value: string) {
             userCookie.value = value;
@@ -19,21 +21,25 @@ export default function useAuth() {
     });
 
     const logout = async () => {
-        let response = await $fetch<IResponse>(api(`auth/logout/${user.value?.session}`), {
-            method: "POST",
-            headers: {
-                Authorization: `Token ${user.value?.token}`
+        if (user.value) {
+            let response = await $fetch<Response>(api(`auth/logout`), {
+                method: "POST",
+                headers: {
+                    Authorization: `Token ${user.value.token}`
+                },
+                body: JSON.stringify({
+                    "data": encode(JSON.stringify({
+                        "session": user.value.session
+                    }))
+                })
+            });
+            
+            if (response.status === "error") {
+                return;
+            } else {
+                ws.close();
+                userCookie.value = "";
             }
-        });
-
-        if (response.status === "error") {
-            return;
-        } else {
-            ws.close();
-            userCookie.value = "";
-            setTimeout(() => {
-                ws.reconnect();
-            }, 1000);
         }
     };
 
